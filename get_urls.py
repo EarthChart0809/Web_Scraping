@@ -141,6 +141,37 @@ for page_num in range(1, 15):  # 1から14ページ
                     full_url = "https://lovegreen.net/library/vegetables/" + href
                 else:
                     full_url = href
+
+                # 除外するURLパターンを強化
+                exclude_patterns = [
+                    '/vegetables/',          # 一覧ページ自体
+                    '/page/',               # ページネーション
+                    '/category/',           # カテゴリページ
+                    'syllabary=',           # 五十音順検索ページ
+                    '?s&type=vegetables',   # 検索ページ
+                    '/search/',             # 検索ページ
+                    '/tag/',                # タグページ
+                    '/author/',             # 作者ページ
+                    '/registration/',       # 登録ページ
+                ]
+
+                # 除外パターンをチェック
+                should_exclude = False
+                for pattern in exclude_patterns:
+                    if pattern in full_url:
+                        should_exclude = True
+                        break
+
+                # 五十音（1文字）のテキストも除外
+                if len(text) == 1 and text in 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん':
+                    should_exclude = True
+
+                # 個別野菜ページのみを追加
+                if not should_exclude:
+                    page_plant_data.append({"name": text, "url": full_url})
+                    print(f"✓ {text} - {full_url}")
+                else:
+                    print(f"❌ 除外: {text} - {full_url}")
                 
                 # 一覧ページ自体は除外
                 if (not full_url.endswith('/vegetables/') and 
@@ -163,6 +194,37 @@ for page_num in range(1, 15):  # 1から14ページ
                     if not any(plant['url'] == full_url for plant in page_plant_data):
                         page_plant_data.append({"name": name, "url": full_url})
                         print(f"✓ {name} - {full_url}")
+
+                    # 同じ除外ロジックを適用
+                    exclude_patterns = [
+                        '/vegetables/',
+                        '/page/',
+                        '/category/',
+                        'syllabary=',
+                        '?s&type=vegetables',
+                        '/search/',
+                        '/tag/',
+                        '/author/',
+                        '/registration/',
+                    ]
+
+                    should_exclude = False
+                    for pattern in exclude_patterns:
+                        if pattern in full_url:
+                            should_exclude = True
+                            break
+
+                    # 五十音（1文字）のテキストも除外
+                    if len(name) == 1 and name in 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん':
+                        should_exclude = True
+
+                    # 重複チェック & 除外チェック
+                    if (not should_exclude and
+                            not any(plant['url'] == full_url for plant in page_plant_data)):
+                        page_plant_data.append({"name": name, "url": full_url})
+                        print(f"✓ {name} - {full_url}")
+                    elif should_exclude:
+                        print(f"❌ 除外: {name} - {full_url}")
 
         # このページのデータを全体リストに追加（重複除去）
         new_count = 0

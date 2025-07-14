@@ -23,13 +23,13 @@ driver = webdriver.Chrome(service=Service(
 # --- CSVから読み込み ---
 plant_pages = []
 try:
-  with open("plant_urls.csv", newline='', encoding='utf-8') as f:
+  with open("fruit-tree_urls.csv", newline='', encoding='utf-8') as f:
     reader = csv.DictReader(f)
     for row in reader:
       plant_pages.append(row)
   print(f"📋 CSVファイルから {len(plant_pages)} 件のデータを読み込みました")
 except FileNotFoundError:
-  print("❌ plant_urls.csv ファイルが見つかりません")
+  print("❌ fruit-tree_urls.csv ファイルが見つかりません")
   driver.quit()
   exit()
 
@@ -171,14 +171,14 @@ for plant_name, content in scraped_data.items():
     print("   ❌ テキストが取得できませんでした")
 
 # JSONとして保存
-with open("plant_data.json", "w", encoding="utf-8") as f:
+with open("fruit-tree_data.json", "w", encoding="utf-8") as f:
   json.dump(scraped_data, f, ensure_ascii=False, indent=2)
 
-print("\n✅ 完了：plant_data.json に保存されました")
+print("\n✅ 完了：fruit-tree_data.json に保存されました")
 
 # 結果をファイルに保存
-with open("scraped_results.txt", "w", encoding="utf-8") as f:
-  f.write("植物スクレイピング結果\n")
+with open("fruit_scraped_results.txt", "w", encoding="utf-8") as f:
+  f.write("フルーツツリースクレイピング結果\n")
   f.write("=" * 50 + "\n\n")
 
   for plant_name, content in scraped_data.items():
@@ -193,4 +193,4 @@ with open("scraped_results.txt", "w", encoding="utf-8") as f:
 
     f.write("\n" + "=" * 50 + "\n\n")
 
-print("\n💾 scraped_results.txt に結果を保存しました")
+print("\n💾 fruit_scraped_results.txt に結果を保存しました")

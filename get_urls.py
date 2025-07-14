@@ -20,17 +20,17 @@ driver = webdriver.Chrome(service=Service(
 # 全ページの植物データを格納するリスト
 all_plant_data = []
 
-# --- 1から14ページまでループ処理 ---
-for page_num in range(1, 15):  # 1から14ページ
+# --- 1から5ページまでループ処理 ---
+for page_num in range(1, 6):  # 1から5ページ
     print(f"\n{'='*60}")
-    print(f"🔄 ページ {page_num}/14 を処理中")
+    print(f"🔄 ページ {page_num}/5 を処理中")
     print(f"{'='*60}")
-    
-    # --- LOVEGREEN 野菜一覧ページ ---
+
+    # --- LOVEGREEN フルーツツリー一覧ページ ---
     if page_num == 1:
-        url = "https://lovegreen.net/library/type/vegetables/page/1/"
+        url = "https://lovegreen.net/library/type/fruit-tree/page/1/"
     else:
-        url = f"https://lovegreen.net/library/type/vegetables/page/{page_num}/"
+        url = f"https://lovegreen.net/library/type/fruit-tree/page/{page_num}/"
 
     print(f"URL: {url}")
     
@@ -106,13 +106,13 @@ for page_num in range(1, 15):  # 1から14ページ
         vegetable_links = []
         for a in a_with_href:
             href = a.get('href')
-            if href and 'vegetables' in href:
+            if href and 'fruit-tree' in href:
                 vegetable_links.append(a)
 
-        print(f"vegetablesを含むリンク数: {len(vegetable_links)}")
+        print(f"fruit-treeを含むリンク数: {len(vegetable_links)}")
 
-        # 最初の10個のvegetableリンクを表示
-        print("\n=== vegetablesリンクの最初の10個 ===")
+        # 最初の10個のfruit-treeリンクを表示
+        print("\n=== fruit-treeリンクの最初の10個 ===")
         for i, link in enumerate(vegetable_links[:10]):
             href = link.get('href')
             text = link.get_text(strip=True)
@@ -127,7 +127,7 @@ for page_num in range(1, 15):  # 1から14ページ
         # このページの植物データを抽出
         page_plant_data = []
 
-        # vegetablesリンクから植物データを抽出
+        # fruit-treeリンクから植物データを抽出
         for link in vegetable_links:
             href = link.get("href")
             text = link.get_text(strip=True)
@@ -138,17 +138,17 @@ for page_num in range(1, 15):  # 1から14ページ
                 if href.startswith('/'):
                     full_url = "https://lovegreen.net" + href
                 elif not href.startswith('http'):
-                    full_url = "https://lovegreen.net/library/vegetables/" + href
+                    full_url = "https://lovegreen.net/library/fruit-tree/" + href
                 else:
                     full_url = href
 
                 # 除外するURLパターンを強化
                 exclude_patterns = [
-                    '/vegetables/',          # 一覧ページ自体
+                    '/fruit-tree/',          # 一覧ページ自体
                     '/page/',               # ページネーション
                     '/category/',           # カテゴリページ
                     'syllabary=',           # 五十音順検索ページ
-                    '?s&type=vegetables',   # 検索ページ
+                    '?s&type=fruit-tree',   # 検索ページ
                     '/search/',             # 検索ページ
                     '/tag/',                # タグページ
                     '/author/',             # 作者ページ
@@ -174,7 +174,7 @@ for page_num in range(1, 15):  # 1から14ページ
                     print(f"❌ 除外: {text} - {full_url}")
                 
                 # 一覧ページ自体は除外
-                if (not full_url.endswith('/vegetables/') and 
+                if (not full_url.endswith('/fruit-tree/') and
                     '/page/' not in full_url and
                     '/category/' not in full_url):
                     page_plant_data.append({"name": text, "url": full_url})
@@ -197,11 +197,11 @@ for page_num in range(1, 15):  # 1から14ページ
 
                     # 同じ除外ロジックを適用
                     exclude_patterns = [
-                        '/vegetables/',
+                        '/fruit-tree/',
                         '/page/',
                         '/category/',
                         'syllabary=',
-                        '?s&type=vegetables',
+                        '?s&type=fruit-tree',
                         '/search/',
                         '/tag/',
                         '/author/',
@@ -260,7 +260,7 @@ plant_data = unique_plants
 
 # --- CSVに保存 ---
 if plant_data:
-    with open("plant_urls.csv", "w", newline="", encoding="utf-8") as f:
+    with open("fruit-tree_urls.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=["name", "url"])
         writer.writeheader()
         writer.writerows(plant_data)

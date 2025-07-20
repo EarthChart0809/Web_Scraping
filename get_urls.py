@@ -20,262 +20,340 @@ driver = webdriver.Chrome(service=Service(
 # 全ページの植物データを格納するリスト
 all_plant_data = []
 
-# --- 1から5ページまでループ処理 ---
-for page_num in range(1, 6):  # 1から5ページ
-    print(f"\n{'='*60}")
-    print(f"🔄 ページ {page_num}/5 を処理中")
-    print(f"{'='*60}")
+# --- 植物カテゴリの設定 ---
+plant_categories = [
+    {
+        "name": "野菜",
+        "type": "vegetables",
+        "url_base": "https://lovegreen.net/library/type/vegetables/",
+        "max_pages": 3
+    },
+    {
+        "name": "果樹",
+        "type": "fruit-tree",
+        "url_base": "https://lovegreen.net/library/type/fruit-tree/",
+        "max_pages": 3
+    },
+    {
+        "name": "花",
+        "type": "flower",
+        "url_base": "https://lovegreen.net/library/type/flower/",
+        "max_pages": 3
+    }
+]
 
-    # --- LOVEGREEN フルーツツリー一覧ページ ---
+# --- 各カテゴリの処理 ---
+for category in plant_categories:
+  print(f"\n{'='*80}")
+  print(f"🌱 {category['name']}の処理を開始")
+  print(f"{'='*80}")
+
+  # --- 各カテゴリのページループ処理 ---
+  for page_num in range(1, category['max_pages'] + 1):
+    print(f"\n{'='*60}")
+    print(f"🔄 {category['name']} - ページ {page_num}/{category['max_pages']} を処理中")
+
+    # --- LOVEGREEN 一覧ページ ---
     if page_num == 1:
-        url = "https://lovegreen.net/library/type/fruit-tree/page/1/"
+      if category['type'] == 'vegetables':
+        url = f"{category['url_base']}page/1"
+      elif category['type'] == 'fruit-tree':
+        url = f"{category['url_base']}page/1"
+      else:  # flower
+        url = category['url_base']
     else:
-        url = f"https://lovegreen.net/library/type/fruit-tree/page/{page_num}/"
+      url = f"{category['url_base']}page/{page_num}/"
 
     print(f"URL: {url}")
-    
+
     try:
-        driver.get(url)
+      driver.get(url)
 
-        # JavaScriptの読み込みを待つ
-        time.sleep(8)  # 待機時間を調整
+      # JavaScriptの読み込みを待つ
+      time.sleep(8)  # 待機時間を調整
 
-        # ページ内容を取得
-        html = driver.page_source
-        soup = BeautifulSoup(html, "html.parser")
+      # ページ内容を取得
+      html = driver.page_source
+      soup = BeautifulSoup(html, "html.parser")
 
-        # デバッグ情報を表示
-        print("=== デバッグ情報 ===")
-        print(f"ページタイトル: {soup.title.string if soup.title else 'なし'}")
-        print(f"HTML全体のサイズ: {len(html)} 文字")
+      # デバッグ情報を表示
+      print("=== デバッグ情報 ===")
+      print(f"ページタイトル: {soup.title.string if soup.title else 'なし'}")
+      print(f"HTML全体のサイズ: {len(html)} 文字")
 
-        # 元のセレクターを確認
-        cards = soup.find_all("a", class_="library-list__item")
-        print(f"library-list__item クラス: {len(cards)} 個")
+      # 元のセレクターを確認
+      cards = soup.find_all("a", class_="library-list__item")
+      print(f"library-list__item クラス: {len(cards)} 個")
 
-        if len(cards) == 0:
-            print("\n=== 代替セレクターを試しています ===")
-            
-            # 他の可能性のあるセレクターを試す
-            alternative_selectors = [
-                ("a", "card"),
-                ("a", "item"),
-                ("div", "card"),
-                ("article", None),
-                ("div", "item"),
-                ("a", "library-item"),
-                ("div", "library-list"),
-                ("a", "plant-card"),
+      if len(cards) == 0:
+        print("\n=== 代替セレクターを試しています ===")
+
+        # 他の可能性のあるセレクターを試す
+        alternative_selectors = [
+            ("a", "card"),
+            ("a", "item"),
+            ("div", "card"),
+            ("article", None),
+            ("div", "item"),
+            ("a", "library-item"),
+            ("div", "library-list"),
+            ("a", "plant-card"),
+        ]
+
+        for tag, class_name in alternative_selectors:
+          if class_name:
+            elements = soup.find_all(tag, class_=class_name)
+            print(f"{tag}.{class_name}: {len(elements)} 個")
+          else:
+            elements = soup.find_all(tag)
+            print(f"{tag}: {len(elements)} 個")
+
+          if elements and len(elements) > 0:
+            # 最初の要素を詳しく確認
+            first_elem = elements[0]
+            print(f"  最初の要素: {first_elem.name}")
+            print(f"  クラス: {first_elem.get('class', [])}")
+            print(f"  href: {first_elem.get('href', 'なし')}")
+
+            # テキスト内容を確認
+            text = first_elem.get_text(strip=True)
+            if text:
+              print(f"  テキスト: {text[:50]}...")
+
+            # このセレクターでリンクを抽出してみる
+            if first_elem.get('href'):
+              cards = elements
+              break
+
+      # 全てのaタグを確認
+      print(f"\n=== 全てのaタグを確認 ===")
+      all_a_tags = soup.find_all("a")
+      print(f"ページ内の全aタグ数: {len(all_a_tags)}")
+
+      # hrefを持つaタグを確認
+      a_with_href = [a for a in all_a_tags if a.get('href')]
+      print(f"hrefを持つaタグ数: {len(a_with_href)}")
+
+      # カテゴリに関連するリンクを探す
+      category_links = []
+      for a in a_with_href:
+        href = a.get('href')
+        if href and category['type'] in href:
+          category_links.append(a)
+
+      print(f"{category['type']}を含むリンク数: {len(category_links)}")
+
+      # 最初の5個のカテゴリリンクを表示
+      print(f"\n=== {category['type']}リンクの最初の5個 ===")
+      for i, link in enumerate(category_links[:5]):
+        href = link.get('href')
+        text = link.get_text(strip=True)
+        print(f"{i+1}. {text[:30]}... - {href}")
+
+      # このページの植物データを抽出
+      page_plant_data = []
+
+      # カテゴリリンクから植物データを抽出
+      for link in category_links:
+        href = link.get("href")
+        text = link.get_text(strip=True)
+
+        # 個別の植物ページのリンクかどうかを判定
+        if href and text and len(text) > 0:
+          # 完全なURLにする
+          if href.startswith('/'):
+            full_url = "https://lovegreen.net" + href
+          elif not href.startswith('http'):
+            full_url = f"https://lovegreen.net/library/{category['type']}/" + href
+          else:
+            full_url = href
+
+          # 除外するURLパターンを修正（より具体的に）
+          exclude_patterns = [
+              f'/type/{category["type"]}/',      # 一覧ページ自体（より具体的に）
+              f'/type/{category["type"]}?',      # 一覧ページのパラメータ付き
+              f'/type/{category["type"]}#',      # 一覧ページのアンカー付き
+              '/page/',                          # ページネーション
+              '/category/',                      # カテゴリページ
+              'syllabary=',                      # 五十音順検索ページ
+              f'?s&type={category["type"]}',     # 検索ページ
+              '/search/',                        # 検索ページ
+              '/tag/',                           # タグページ
+              '/author/',                        # 作者ページ
+              '/registration/',                  # 登録ページ
+          ]
+
+          # 除外パターンをチェック
+          should_exclude = False
+          for pattern in exclude_patterns:
+            if pattern in full_url:
+              should_exclude = True
+              break
+
+          # 五十音（1文字）のテキストも除外
+          if len(text) == 1 and text in 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん':
+            should_exclude = True
+
+          # 個別植物ページの判定を追加
+          # 個別植物ページのURLパターン: /library/カテゴリ/p数字/ または /library/カテゴリ/植物名/
+          is_individual_page = False
+
+          # pXXXXX形式のページID
+          if '/p' in href and href.split('/p')[-1].rstrip('/').isdigit():
+            is_individual_page = True
+
+          # 植物名形式のURL（/library/カテゴリ/植物名/）
+          url_parts = href.strip('/').split('/')
+          if (len(url_parts) >= 3 and
+              url_parts[0] == 'library' and
+              url_parts[1] == category['type'] and
+              len(url_parts[2]) > 1 and  # 植物名は1文字以上
+                  not url_parts[2].startswith('p')):  # pXXXX形式でない
+            is_individual_page = True
+
+          # 個別植物ページで除外パターンに該当しないもののみを追加
+          if is_individual_page and not should_exclude:
+            page_plant_data.append(
+                {"name": text, "url": full_url, "category": category['name']})
+            print(f"✓ {text} - {full_url}")
+          else:
+            if not is_individual_page:
+              print(f"❌ 個別ページではない: {text} - {full_url}")
+            else:
+              print(f"❌ 除外パターンに該当: {text} - {full_url}")
+
+      # 元のセレクターも試す
+      if len(cards) > 0:
+        print(f"\n=== 元のセレクターでの抽出 ===")
+        for card in cards:
+          link = card.get("href")
+          name_tag = card.find("span", class_="library-list__item__title")
+          name = name_tag.get_text(strip=True) if name_tag else None
+
+          if name and link:
+            full_url = link if link.startswith(
+                "http") else "https://lovegreen.net" + link
+
+            # 同じ除外ロジックを適用
+            exclude_patterns = [
+                f'/type/{category["type"]}/',
+                f'/type/{category["type"]}?',
+                f'/type/{category["type"]}#',
+                '/page/',
+                '/category/',
+                'syllabary=',
+                f'?s&type={category["type"]}',
+                '/search/',
+                '/tag/',
+                '/author/',
+                '/registration/',
             ]
-            
-            for tag, class_name in alternative_selectors:
-                if class_name:
-                    elements = soup.find_all(tag, class_=class_name)
-                    print(f"{tag}.{class_name}: {len(elements)} 個")
-                else:
-                    elements = soup.find_all(tag)
-                    print(f"{tag}: {len(elements)} 個")
-                
-                if elements and len(elements) > 0:
-                    # 最初の要素を詳しく確認
-                    first_elem = elements[0]
-                    print(f"  最初の要素: {first_elem.name}")
-                    print(f"  クラス: {first_elem.get('class', [])}")
-                    print(f"  href: {first_elem.get('href', 'なし')}")
-                    
-                    # テキスト内容を確認
-                    text = first_elem.get_text(strip=True)
-                    if text:
-                        print(f"  テキスト: {text[:50]}...")
-                    
-                    # このセレクターでリンクを抽出してみる
-                    if first_elem.get('href'):
-                        cards = elements
-                        break
 
-        # 全てのaタグを確認
-        print(f"\n=== 全てのaタグを確認 ===")
-        all_a_tags = soup.find_all("a")
-        print(f"ページ内の全aタグ数: {len(all_a_tags)}")
+            should_exclude = False
+            for pattern in exclude_patterns:
+              if pattern in full_url:
+                should_exclude = True
+                break
 
-        # hrefを持つaタグを確認
-        a_with_href = [a for a in all_a_tags if a.get('href')]
-        print(f"hrefを持つaタグ数: {len(a_with_href)}")
+            # 五十音（1文字）のテキストも除外
+            if len(name) == 1 and name in 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん':
+              should_exclude = True
 
-        # vegetablesに関連するリンクを探す
-        vegetable_links = []
-        for a in a_with_href:
-            href = a.get('href')
-            if href and 'fruit-tree' in href:
-                vegetable_links.append(a)
+            # 個別植物ページの判定
+            is_individual_page = False
 
-        print(f"fruit-treeを含むリンク数: {len(vegetable_links)}")
+            if '/p' in link and link.split('/p')[-1].rstrip('/').isdigit():
+              is_individual_page = True
 
-        # 最初の10個のfruit-treeリンクを表示
-        print("\n=== fruit-treeリンクの最初の10個 ===")
-        for i, link in enumerate(vegetable_links[:10]):
-            href = link.get('href')
-            text = link.get_text(strip=True)
-            print(f"{i+1}. {text[:30]}... - {href}")
+            url_parts = link.strip('/').split('/')
+            if (len(url_parts) >= 3 and
+                url_parts[0] == 'library' and
+                url_parts[1] == category['type'] and
+                len(url_parts[2]) > 1 and
+                    not url_parts[2].startswith('p')):
+              is_individual_page = True
 
-        # # HTMLダンプを保存（最初の3ページのみ）
-        # if page_num <= 3:
-        #     with open(f"vegetables_page_{page_num}_dump.html", "w", encoding="utf-8") as f:
-        #         f.write(soup.prettify())
-        #     print(f"\n💾 vegetables_page_{page_num}_dump.html を保存しました")
+            # 重複チェック & 除外チェック
+            if (is_individual_page and not should_exclude and
+                    not any(plant['url'] == full_url for plant in page_plant_data)):
+              page_plant_data.append(
+                  {"name": name, "url": full_url, "category": category['name']})
+              print(f"✓ {name} - {full_url}")
+            elif not is_individual_page:
+              print(f"❌ 個別ページではない: {name} - {full_url}")
+            elif should_exclude:
+              print(f"❌ 除外パターンに該当: {name} - {full_url}")
 
-        # このページの植物データを抽出
-        page_plant_data = []
+      # このページのデータを全体リストに追加（重複除去）
+      new_count = 0
+      existing_urls = {plant['url'] for plant in all_plant_data}
 
-        # fruit-treeリンクから植物データを抽出
-        for link in vegetable_links:
-            href = link.get("href")
-            text = link.get_text(strip=True)
-            
-            # 個別の植物ページのリンクかどうかを判定
-            if href and text and len(text) > 0:
-                # 完全なURLにする
-                if href.startswith('/'):
-                    full_url = "https://lovegreen.net" + href
-                elif not href.startswith('http'):
-                    full_url = "https://lovegreen.net/library/fruit-tree/" + href
-                else:
-                    full_url = href
+      for plant in page_plant_data:
+        if plant['url'] not in existing_urls:
+          all_plant_data.append(plant)
+          new_count += 1
 
-                # 除外するURLパターンを強化
-                exclude_patterns = [
-                    '/fruit-tree/',          # 一覧ページ自体
-                    '/page/',               # ページネーション
-                    '/category/',           # カテゴリページ
-                    'syllabary=',           # 五十音順検索ページ
-                    '?s&type=fruit-tree',   # 検索ページ
-                    '/search/',             # 検索ページ
-                    '/tag/',                # タグページ
-                    '/author/',             # 作者ページ
-                    '/registration/',       # 登録ページ
-                ]
+      print(
+          f"\n📊 {category['name']} - ページ {page_num}: {new_count}件の新しい植物を追加 (累計: {len(all_plant_data)}件)")
 
-                # 除外パターンをチェック
-                should_exclude = False
-                for pattern in exclude_patterns:
-                    if pattern in full_url:
-                        should_exclude = True
-                        break
-
-                # 五十音（1文字）のテキストも除外
-                if len(text) == 1 and text in 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん':
-                    should_exclude = True
-
-                # 個別野菜ページのみを追加
-                if not should_exclude:
-                    page_plant_data.append({"name": text, "url": full_url})
-                    print(f"✓ {text} - {full_url}")
-                else:
-                    print(f"❌ 除外: {text} - {full_url}")
-                
-                # 一覧ページ自体は除外
-                if (not full_url.endswith('/fruit-tree/') and
-                    '/page/' not in full_url and
-                    '/category/' not in full_url):
-                    page_plant_data.append({"name": text, "url": full_url})
-                    print(f"✓ {text} - {full_url}")
-
-        # 元のセレクターも試す
-        if len(cards) > 0:
-            print(f"\n=== 元のセレクターでの抽出 ===")
-            for card in cards:
-                link = card.get("href")
-                name_tag = card.find("span", class_="library-list__item__title")
-                name = name_tag.get_text(strip=True) if name_tag else None
-
-                if name and link:
-                    full_url = link if link.startswith("http") else "https://lovegreen.net" + link
-                    # 重複チェック
-                    if not any(plant['url'] == full_url for plant in page_plant_data):
-                        page_plant_data.append({"name": name, "url": full_url})
-                        print(f"✓ {name} - {full_url}")
-
-                    # 同じ除外ロジックを適用
-                    exclude_patterns = [
-                        '/fruit-tree/',
-                        '/page/',
-                        '/category/',
-                        'syllabary=',
-                        '?s&type=fruit-tree',
-                        '/search/',
-                        '/tag/',
-                        '/author/',
-                        '/registration/',
-                    ]
-
-                    should_exclude = False
-                    for pattern in exclude_patterns:
-                        if pattern in full_url:
-                            should_exclude = True
-                            break
-
-                    # 五十音（1文字）のテキストも除外
-                    if len(name) == 1 and name in 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん':
-                        should_exclude = True
-
-                    # 重複チェック & 除外チェック
-                    if (not should_exclude and
-                            not any(plant['url'] == full_url for plant in page_plant_data)):
-                        page_plant_data.append({"name": name, "url": full_url})
-                        print(f"✓ {name} - {full_url}")
-                    elif should_exclude:
-                        print(f"❌ 除外: {name} - {full_url}")
-
-        # このページのデータを全体リストに追加（重複除去）
-        new_count = 0
-        existing_urls = {plant['url'] for plant in all_plant_data}
-        
-        for plant in page_plant_data:
-            if plant['url'] not in existing_urls:
-                all_plant_data.append(plant)
-                new_count += 1
-        
-        print(f"\n📊 ページ {page_num}: {new_count}件の新しい野菜を追加 (累計: {len(all_plant_data)}件)")
-        
     except Exception as e:
-        print(f"❌ ページ {page_num} でエラーが発生: {e}")
-        continue
+      print(f"❌ {category['name']} - ページ {page_num} でエラーが発生: {e}")
+      continue
 
 # ドライバーを終了
 driver.quit()
 
-print(f"\n{'='*60}")
-print("🎉 全ページの処理が完了しました")
-print(f"{'='*60}")
+print(f"\n{'='*80}")
+print("🎉 全カテゴリの処理が完了しました")
+print(f"{'='*80}")
 
 # 重複を除去（最終チェック）
 unique_plants = []
 seen_urls = set()
 for plant in all_plant_data:
-    if plant['url'] not in seen_urls:
-        unique_plants.append(plant)
-        seen_urls.add(plant['url'])
+  if plant['url'] not in seen_urls:
+    unique_plants.append(plant)
+    seen_urls.add(plant['url'])
 
 plant_data = unique_plants
 
-# --- CSVに保存 ---
-if plant_data:
-    with open("fruit-tree_urls.csv", "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["name", "url"])
-        writer.writeheader()
-        writer.writerows(plant_data)
+# カテゴリ別の統計情報を表示
+print("\n📊 カテゴリ別統計:")
+category_stats = {}
+for plant in plant_data:
+  category = plant['category']
+  category_stats[category] = category_stats.get(category, 0) + 1
 
-    print(f"\n✅ 完了：{len(plant_data)} 件の野菜データを plant_urls.csv に保存しました")
-    
-    # 最初の5件を表示
-    print("\n📋 最初の5件:")
-    for i, plant in enumerate(plant_data[:5]):
-        print(f"  {i+1}. {plant['name']} - {plant['url']}")
-        
-    # 最後の5件を表示
-    print("\n📋 最後の5件:")
-    for i, plant in enumerate(plant_data[-5:]):
-        print(f"  {len(plant_data)-4+i}. {plant['name']} - {plant['url']}")
+for category, count in category_stats.items():
+  print(f"  {category}: {count}件")
+
+# --- 統合CSVに保存 ---
+if plant_data:
+  with open("all_plants_urls.csv", "w", newline="", encoding="utf-8") as f:
+    writer = csv.DictWriter(f, fieldnames=["name", "url", "category"])
+    writer.writeheader()
+    writer.writerows(plant_data)
+
+  print(f"\n✅ 完了：{len(plant_data)} 件の植物データを all_plants_urls.csv に保存しました")
+
+  # 各カテゴリの最初の3件を表示
+  print("\n📋 各カテゴリの最初の3件:")
+  for category_name in ["野菜", "果樹", "花"]:
+    category_plants = [p for p in plant_data if p['category'] == category_name]
+    if category_plants:
+      print(f"\n  【{category_name}】")
+      for i, plant in enumerate(category_plants[:3]):
+        print(f"    {i+1}. {plant['name']} - {plant['url']}")
+      if len(category_plants) > 3:
+        print(f"    ... 他 {len(category_plants) - 3} 件")
+
+  # 最後の5件を表示
+  print(f"\n📋 最後の5件:")
+  for i, plant in enumerate(plant_data[-5:]):
+    print(
+        f"  {len(plant_data)-4+i}. [{plant['category']}] {plant['name']} - {plant['url']}")
+
 else:
-    print("\n❌ 植物データが見つかりませんでした")
-    print("🔍 vegetables_page_*_dump.html を確認してください")
+  print("\n❌ 植物データが見つかりませんでした")
+
+print(f"\n🎊 処理完了！合計 {len(plant_data)} 件の植物データを取得しました")

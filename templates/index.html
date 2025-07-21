@@ -1,14 +1,43 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>植物育成評価アップローダー</title>
+  <meta charset="UTF-8">
+  <title>植物育成難易度評価ツール</title>
+  <style>
+    body { font-family: sans-serif; background-color: #f9f9f9; padding: 2rem; }
+    h1 { color: #2a7f62; }
+    form, table { background-color: #fff; padding: 1rem; border-radius: 10px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+    table { width: 100%; margin-top: 1rem; border-collapse: collapse; }
+    th, td { padding: 0.6rem; border-bottom: 1px solid #ccc; text-align: center; }
+    th { background-color: #d6f5e3; }
+    button { padding: 0.5rem 1rem; background-color: #2a7f62; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background-color: #1e5947; }
+  </style>
 </head>
 <body>
-    <h1>植物育成評価</h1>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="json_file" accept=".json" required>
-        <button type="submit">アップロードして評価する</button>
-    </form>
+  <h1>🌿 植物育成難易度 評価ツール</h1>
+
+  <form method="post">
+    <p>サーバー内の植物情報 (plants.json) を使用して評価を行います。</p>
+    <button type="submit">評価開始</button>
+  </form>
+
+  {% if results %}
+  <h2>📊 評価結果</h2>
+  <table>
+    <tr>
+      <th>植物名</th>
+      <th>評価</th>
+      <th>スコア</th>
+    </tr>
+    {% for result in results %}
+    <tr>
+      <td>{{ result.植物名 }}</td>
+      <td>{{ result.評価 }}</td>
+      <td>{{ result.スコア }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
 </body>
 </html>

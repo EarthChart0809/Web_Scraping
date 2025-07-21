@@ -23,13 +23,13 @@ driver = webdriver.Chrome(service=Service(
 # --- CSVから読み込み ---
 plant_pages = []
 try:
-  with open("all_plant_urls.csv", newline='', encoding='utf-8') as f:
+  with open("all_plants_urls.csv", newline='', encoding='utf-8') as f:
     reader = csv.DictReader(f)
     for row in reader:
       plant_pages.append(row)
   print(f"📋 CSVファイルから {len(plant_pages)} 件のデータを読み込みました")
 except FileNotFoundError:
-  print("❌ all_plant_urls.csv ファイルが見つかりません")
+  print("❌ all_plants_urls.csv ファイルが見つかりません")
   driver.quit()
   exit()
 
@@ -171,7 +171,7 @@ for plant_name, content in scraped_data.items():
     print("   ❌ テキストが取得できませんでした")
 
 # JSONとして保存
-with open("all_plant_data.json", "w", encoding="utf-8") as f:
+with open("all_plants_data.json", "w", encoding="utf-8") as f:
   json.dump(scraped_data, f, ensure_ascii=False, indent=2)
 
 print("\n✅ 完了：all_plant_data.json に保存されました")

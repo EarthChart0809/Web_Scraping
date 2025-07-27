@@ -4,7 +4,7 @@ from Growability_Assessment import assess_all_plants, load_plant_data
 app = Flask(__name__)
 
 # 既に保存されているJSONファイルのパス
-JSON_PATH = "data/plant_data.json"
+JSON_PATH = "all_plants_data.json"
 
 @app.route('/', methods=['GET', 'POST'])
 def index():

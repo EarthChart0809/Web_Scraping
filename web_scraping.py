@@ -27,7 +27,7 @@ try:
     reader = csv.DictReader(f)
     for row in reader:
       plant_pages.append(row)
-  print(f"📋 CSVファイルから {len(plant_pages)} 件のデータを読み込みました")
+  print(f" CSVファイルから {len(plant_pages)} 件のデータを読み込みました")
 except FileNotFoundError:
   print("❌ all_plants_urls.csv ファイルが見つかりません")
   driver.quit()
@@ -123,10 +123,6 @@ for i, row in enumerate(plant_pages):
       print(f"✅ {plant_name}: {len(plant_content)} 個のテキスト要素を取得")
       scraped_data[plant_name] = plant_content
 
-      # # 最初の3つのテキストを表示
-      # print("📝 抽出されたテキスト（最初の3つ）:")
-      # for j, content in enumerate(plant_content[:3]):
-      #     print(f"  {j+1}. {content[:100]}...")
     else:
       print(f"❌ {plant_name}: テキストが見つかりませんでした")
       scraped_data[plant_name] = []
@@ -140,13 +136,6 @@ for i, row in enumerate(plant_pages):
           if text:
             print(f"p{j+1}: {text[:100]}...")
 
-    # # HTMLダンプを保存（植物名別）
-    # safe_plant_name = plant_name.replace("/", "_").replace("\\", "_")
-    # with open(f"{safe_plant_name}_page_dump.html", "w", encoding="utf-8") as f:
-    #     f.write(soup.prettify())
-
-    # print(f"💾 {safe_plant_name}_page_dump.html を保存しました")
-
   except Exception as e:
     print(f"❌ {plant_name} のスクレイピング中にエラーが発生: {str(e)}")
     scraped_data[plant_name] = []
@@ -159,7 +148,7 @@ driver.quit()
 
 # 結果をまとめて表示
 print(f"\n{'='*60}")
-print("🌟 スクレイピング結果まとめ")
+print("スクレイピング結果まとめ")
 print(f"{'='*60}")
 
 for plant_name, content in scraped_data.items():

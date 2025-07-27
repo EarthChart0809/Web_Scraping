@@ -26,19 +26,19 @@ plant_categories = [
         "name": "野菜",
         "type": "vegetables",
         "url_base": "https://lovegreen.net/library/type/vegetables/",
-        "max_pages": 3
+        "max_pages": 14
     },
     {
         "name": "果樹",
         "type": "fruit-tree",
         "url_base": "https://lovegreen.net/library/type/fruit-tree/",
-        "max_pages": 3
+        "max_pages": 5
     },
     {
         "name": "花",
         "type": "flower",
         "url_base": "https://lovegreen.net/library/type/flower/",
-        "max_pages": 3
+        "max_pages": 62
     }
 ]
 
@@ -216,11 +216,6 @@ for category in plant_categories:
             page_plant_data.append(
                 {"name": text, "url": full_url, "category": category['name']})
             print(f"✓ {text} - {full_url}")
-          else:
-            if not is_individual_page:
-              print(f"❌ 個別ページではない: {text} - {full_url}")
-            else:
-              print(f"❌ 除外パターンに該当: {text} - {full_url}")
 
       # 元のセレクターも試す
       if len(cards) > 0:
@@ -279,10 +274,7 @@ for category in plant_categories:
               page_plant_data.append(
                   {"name": name, "url": full_url, "category": category['name']})
               print(f"✓ {name} - {full_url}")
-            elif not is_individual_page:
-              print(f"❌ 個別ページではない: {name} - {full_url}")
-            elif should_exclude:
-              print(f"❌ 除外パターンに該当: {name} - {full_url}")
+            
 
       # このページのデータを全体リストに追加（重複除去）
       new_count = 0
@@ -294,7 +286,7 @@ for category in plant_categories:
           new_count += 1
 
       print(
-          f"\n📊 {category['name']} - ページ {page_num}: {new_count}件の新しい植物を追加 (累計: {len(all_plant_data)}件)")
+          f"\n{category['name']} - ページ {page_num}: {new_count}件の新しい植物を追加 (累計: {len(all_plant_data)}件)")
 
     except Exception as e:
       print(f"❌ {category['name']} - ページ {page_num} でエラーが発生: {e}")
@@ -304,7 +296,7 @@ for category in plant_categories:
 driver.quit()
 
 print(f"\n{'='*80}")
-print("🎉 全カテゴリの処理が完了しました")
+print("全カテゴリの処理が完了しました")
 print(f"{'='*80}")
 
 # 重複を除去（最終チェック）
@@ -318,7 +310,7 @@ for plant in all_plant_data:
 plant_data = unique_plants
 
 # カテゴリ別の統計情報を表示
-print("\n📊 カテゴリ別統計:")
+print("\nカテゴリ別統計:")
 category_stats = {}
 for plant in plant_data:
   category = plant['category']
@@ -337,7 +329,7 @@ if plant_data:
   print(f"\n✅ 完了：{len(plant_data)} 件の植物データを all_plants_urls.csv に保存しました")
 
   # 各カテゴリの最初の3件を表示
-  print("\n📋 各カテゴリの最初の3件:")
+  print("\n各カテゴリの最初の3件:")
   for category_name in ["野菜", "果樹", "花"]:
     category_plants = [p for p in plant_data if p['category'] == category_name]
     if category_plants:
@@ -348,7 +340,7 @@ if plant_data:
         print(f"    ... 他 {len(category_plants) - 3} 件")
 
   # 最後の5件を表示
-  print(f"\n📋 最後の5件:")
+  print(f"\n 最後の5件:")
   for i, plant in enumerate(plant_data[-5:]):
     print(
         f"  {len(plant_data)-4+i}. [{plant['category']}] {plant['name']} - {plant['url']}")
@@ -356,4 +348,4 @@ if plant_data:
 else:
   print("\n❌ 植物データが見つかりませんでした")
 
-print(f"\n🎊 処理完了！合計 {len(plant_data)} 件の植物データを取得しました")
+print(f"\n処理完了！合計 {len(plant_data)} 件の植物データを取得しました")
